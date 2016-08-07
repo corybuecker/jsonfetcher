@@ -13,6 +13,7 @@ var server *httptest.Server
 
 var expectedResponse = "{\"response\":{\"games\":[{\"appid\":10,\"playtime_forever\":32}]}}"
 var unexpectedResponse = "{\"test\":{\"something\":true}}"
+var malformedResponse = "\"test\":{\"something\":true}}"
 
 var fetcher = Jsonfetcher{}
 
@@ -40,10 +41,58 @@ func configureResponse(code int, response string) {
 	}))
 }
 
+func TestHTTPError(t *testing.T) {
+	configureResponse(200, expectedResponse)
+	var data = matchingDestination{}
+	server.Close()
+
+	err := fetcher.Fetch(server.URL, &data)
+
+	assert.Error(t, err, "should be an error")
+}
+
 func TestMatchingDestinationWithExpectedResponse(t *testing.T) {
 	configureResponse(200, expectedResponse)
 	var data = matchingDestination{}
 	fetcher.Fetch(server.URL, &data)
 
 	assert.Equal(t, 10, data.Response.Games[0].ID, "should have returned the correct data")
+}
+
+func TestNonMatchingDestinationWithExpectedResponse(t *testing.T) {
+	configureResponse(200, expectedResponse)
+	var data = nonMatchingDestination{}
+	fetcher.Fetch(server.URL, &data)
+
+	assert.Equal(t, nonMatchingDestination{}, data, "should be empty")
+}
+
+func TestMatchingDestinationWithUnexpectedResponse(t *testing.T) {
+	configureResponse(200, unexpectedResponse)
+	var data = matchingDestination{}
+	fetcher.Fetch(server.URL, &data)
+
+	assert.Equal(t, matchingDestination{}, data, "should be empty")
+}
+
+func TestNonMatchingDestinationWithUnexpectedResponse(t *testing.T) {
+	configureResponse(200, unexpectedResponse)
+	var data = nonMatchingDestination{}
+	fetcher.Fetch(server.URL, &data)
+
+	assert.Equal(t, nonMatchingDestination{}, data, "should be empty")
+}
+
+func TestNonTwoHundredResponseCode(t *testing.T) {
+	configureResponse(500, expectedResponse)
+	var data = matchingDestination{}
+	err := fetcher.Fetch(server.URL, &data)
+	assert.Error(t, err, "should be an error")
+}
+
+func TestMalformedResponse(t *testing.T) {
+	configureResponse(200, malformedResponse)
+	var data = matchingDestination{}
+	err := fetcher.Fetch(server.URL, &data)
+	assert.Error(t, err, "should be an error")
 }

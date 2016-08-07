@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// Fetcher retrives a body of text and marshalls it into the destination
+// Fetcher retrives a body of text and marshals it into the destination
 type Fetcher interface {
 	Fetch(string, interface{}) error
 }
@@ -19,7 +19,7 @@ type Jsonfetcher struct {
 	response *http.Response
 }
 
-// Fetch will create the http client, fetch the content and marshall it into the destination
+// Fetch will create the http client, fetch the content and marshal it into the destination
 func (jsonfetcher *Jsonfetcher) Fetch(url string, destination interface{}) error {
 	jsonfetcher.createClient()
 
@@ -29,11 +29,9 @@ func (jsonfetcher *Jsonfetcher) Fetch(url string, destination interface{}) error
 
 	defer jsonfetcher.response.Body.Close()
 
-	if err := jsonfetcher.marshallResponse(destination); err != nil {
-		return err
-	}
+	err := jsonfetcher.marshalResponse(destination)
 
-	return nil
+	return err
 }
 
 func (jsonfetcher *Jsonfetcher) createClient() {
@@ -58,13 +56,17 @@ func (jsonfetcher *Jsonfetcher) fetchResponse(url string) error {
 	return err
 }
 
-func (jsonfetcher *Jsonfetcher) marshallResponse(destination interface{}) error {
+func (jsonfetcher *Jsonfetcher) marshalResponse(destination interface{}) error {
 	var contents []byte
 	var err error
 
-	contents, err = ioutil.ReadAll(jsonfetcher.response.Body)
+	if contents, err = ioutil.ReadAll(jsonfetcher.response.Body); err != nil {
+		return err
+	}
 
-	err = json.Unmarshal(contents, destination)
+	if err = json.Unmarshal(contents, destination); err != nil {
+		return err
+	}
 
-	return err
+	return nil
 }

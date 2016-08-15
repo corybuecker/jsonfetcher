@@ -29,7 +29,7 @@ func (jsonfetcher *Jsonfetcher) Fetch(url string, destination interface{}) error
 
 	defer jsonfetcher.response.Body.Close()
 
-	err := jsonfetcher.marshalResponse(destination)
+	err := jsonfetcher.unmarshalResponse(destination)
 
 	return err
 }
@@ -56,7 +56,7 @@ func (jsonfetcher *Jsonfetcher) fetchResponse(url string) error {
 	return err
 }
 
-func (jsonfetcher *Jsonfetcher) marshalResponse(destination interface{}) error {
+func (jsonfetcher *Jsonfetcher) unmarshalResponse(destination interface{}) error {
 	var contents []byte
 	var err error
 

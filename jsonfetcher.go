@@ -11,12 +11,27 @@ import (
 // Fetcher retrives a body of text and marshals it into the destination
 type Fetcher interface {
 	Get(string, interface{}) error
+	LastResponseHeaders() map[string]string
 }
 
 // Jsonfetcher is the struct wrapping the http client and response
 type Jsonfetcher struct {
 	client   *http.Client
 	response *http.Response
+}
+
+// LastResponseHeaders will return the headers from the last request
+func (jsonfetcher *Jsonfetcher) LastResponseHeaders() map[string]string {
+	var results = make(map[string]string)
+
+	if jsonfetcher.response != nil {
+		for header := range jsonfetcher.response.Header {
+			results[header] = jsonfetcher.response.Header.Get(header)
+		}
+		return results
+	}
+
+	return nil
 }
 
 // Get will create the http client, fetch the content and marshal it into the destination

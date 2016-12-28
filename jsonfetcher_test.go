@@ -41,6 +41,10 @@ func configureResponse(code int, response string) {
 	}))
 }
 
+func TestReturnHeadersWithoutResponse(t *testing.T) {
+	assert.Nil(t, fetcher.LastResponseHeaders())
+}
+
 func TestHTTPError(t *testing.T) {
 	configureResponse(200, expectedResponse)
 	var data = matchingDestination{}
@@ -102,4 +106,11 @@ func TestHeaders(t *testing.T) {
 	var data = matchingDestination{}
 	fetcher.Get(server.URL, map[string]string{"testheader": "true"}, &data)
 	assert.Equal(t, 10, data.Response.Games[0].ID, "should have returned the correct data")
+}
+
+func TestReturnHeaders(t *testing.T) {
+	configureResponse(200, expectedResponse)
+	var data = matchingDestination{}
+	fetcher.Get(server.URL, map[string]string{"testheader": "true"}, &data)
+	assert.Equal(t, fetcher.LastResponseHeaders()["Content-Type"], "application/json")
 }

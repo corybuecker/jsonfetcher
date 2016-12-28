@@ -10,7 +10,7 @@ import (
 
 // Fetcher retrives a body of text and marshals it into the destination
 type Fetcher interface {
-	Fetch(string, interface{}) error
+	Get(string, interface{}) error
 }
 
 // Jsonfetcher is the struct wrapping the http client and response
@@ -19,11 +19,11 @@ type Jsonfetcher struct {
 	response *http.Response
 }
 
-// Fetch will create the http client, fetch the content and marshal it into the destination
-func (jsonfetcher *Jsonfetcher) Fetch(url string, destination interface{}) error {
+// Get will create the http client, fetch the content and marshal it into the destination
+func (jsonfetcher *Jsonfetcher) Get(url string, headers map[string]string, destination interface{}) error {
 	jsonfetcher.createClient()
 
-	if err := jsonfetcher.fetchResponse(url); err != nil {
+	if err := jsonfetcher.get(url, headers); err != nil {
 		return err
 	}
 
@@ -42,10 +42,19 @@ func (jsonfetcher *Jsonfetcher) createClient() {
 	}
 }
 
-func (jsonfetcher *Jsonfetcher) fetchResponse(url string) error {
+func (jsonfetcher *Jsonfetcher) get(url string, headers map[string]string) error {
 	var err error
+	var request *http.Request
 
-	if jsonfetcher.response, err = jsonfetcher.client.Get(url); err != nil {
+	if request, err = http.NewRequest("GET", url, nil); err != nil {
+		return err
+	}
+
+	for header, value := range headers {
+		request.Header.Set(header, value)
+	}
+
+	if jsonfetcher.response, err = jsonfetcher.client.Do(request); err != nil {
 		return err
 	}
 

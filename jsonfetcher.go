@@ -10,7 +10,7 @@ import (
 
 // Fetcher retrives a body of text and marshals it into the destination
 type Fetcher interface {
-	Get(string, interface{}) error
+	Get(string, map[string]string, interface{}) error
 	LastResponseHeaders() map[string]string
 }
 
